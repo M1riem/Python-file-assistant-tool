@@ -1,0 +1,21 @@
+#ifndef __SAMPLE__
+	#define __SAMPLE__
+
+	import void foo() from "module";
+	
+	global const float pi = 3.14;
+
+	#define a		( 10 )
+	
+	#define b		( 20 )
+	
+	
+	#define c		( 21 )
+	#define d		( 22 )
+	
+	#define macros	#( x,y,z )	( x + y + z )
+
+	#define e		( 98 )
+	#define f		( 99 )
+
+#endif // __SAMPLE__

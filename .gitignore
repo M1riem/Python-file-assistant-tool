@@ -1,2 +1,12 @@
 
 *.txt
+*.pyc
+*.MSG
+*.fos
+*.bcp
+
+data.xml
+
+!fos/_sample.fos
+!text/*/EXAMPLE.MSG
+!text/*/EXAMPLE_RESULT.MSG

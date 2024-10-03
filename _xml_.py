@@ -49,6 +49,7 @@ class _XML_:
     <filenames>_dialogs.fos</filenames>
     <filenames>_itempid.fos</filenames>
     <filenames>_msgstr.fos</filenames>
+    <filenames>_sample.fos</filenames>
   </extension>
 </extensions>"""
         

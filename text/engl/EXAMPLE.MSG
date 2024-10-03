@@ -1,0 +1,16 @@
+# comment, don't touch it // never
+#{0}{}{} //ever
+
+// pseudo comment - don't touch them either
+{633}{}{Yes} // 1
+{634}{}{No} // 2
+
+//{2}{}{Quick} #skipped
+
+{366}{}{Baseball fan} // 4
+{438}{}{You blocked access to the terminal.} // 6
+
+{442}{}{and} // 10
+
+{444}{}{Elevator is busy.} // 12
+{45}{}{calls the elevator!} // 13
