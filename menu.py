@@ -104,7 +104,7 @@ class MenuCategories(Menu):
                         
                 #Изменить дирректории в XML файле   
                 case i if i == self.n-1:
-                    #_xml_updateDirectories(suffixes)
+                    _xml_updateDirectories(suffixes)
                     #recursion
                     self.recursion += 1
                     self.restart("")

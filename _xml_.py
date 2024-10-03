@@ -71,7 +71,7 @@ def _xml_updateDirectories(extensions):
     localizations = {"russ": "русской", "engl": "английской"}
     key = 'type'
     
-    pattern = f"Введите путь к дирректории, в которой находятся файлы с расширением "
+    pattern = f"Введите путь к директории, в которой находятся файлы с расширением "
     for extension in extensions:
         for dir in extension:
             if dir.tag == tagDir:
