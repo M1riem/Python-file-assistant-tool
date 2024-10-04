@@ -6,6 +6,7 @@
 *.bcp
 
 data.xml
+other.py
 
 !fos/_sample.fos
 !text/*/EXAMPLE.MSG

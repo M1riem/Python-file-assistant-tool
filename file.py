@@ -13,7 +13,8 @@ class File:
         self.setPattern() 
         
         self.lines = self.getLines()
-        self.allNumbers = self.getAllNumbers() 
+        self.allNumbers = self.getAllNumbers()
+        self.output = "Файл не изменен"
         
         
     def setPattern(self):
@@ -26,10 +27,10 @@ class File:
                 self.pattern_number = r"[\d]+"
                 
             case ".fos":
-                self.first_char = "#"
+                self.first_char = "" 
                 self.start_bracket = "( "
                 self.end_bracket   = " )"
-                self.pattern_number_in_brackets = r"\([\d\ ]+\)$"
+                self.pattern_number_in_brackets = r"\([\d\ ]+\)"
                 self.pattern_number = r"[\d]+"
     
         #debug
@@ -88,7 +89,6 @@ class File:
 
 
     #business_logic
-    #replaceNumbers
     def replaceNumbers(self):
         self.output = f"Номера изменены на {self.delta}:\n"
         lines = self.lines
@@ -103,9 +103,7 @@ class File:
                 
                 lines[i] =  self.changeNLine(number_in_brackets, lines[i])
                 
-        #self.lines = lines
         self.change(lines)
-        #return lines 
 
     
     def changeNLine(self, oldN, line):

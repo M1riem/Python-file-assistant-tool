@@ -62,7 +62,7 @@ class _XML_:
             f.write(etree.tostring(tree, encoding="windows-1251", pretty_print=True) )
         
 
-#C:\GitHub\Python\Python-file-assistant-tool\russ\
+#C:\GitHub\Python\Python-file-assistant-tool\russ
 #C:\GitHub\Python\Python-file-assistant-tool\engl
 #C:\GitHub\Python\Python-file-assistant-tool\fos
 #нужно ли добавлять в class _XML_?

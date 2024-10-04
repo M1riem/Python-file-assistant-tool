@@ -56,11 +56,8 @@ class FileFosHandler(Handler):
         paths, start, end, delta = self.verifiedData
         #открытие файла
         self.file = File(paths[0], start, end, delta) 
-        #замена номеров в файлах
+        #замена номеров в файлах        
         self.file.replaceNumbers()
-        
-        return self.file
-        
         
 
 class FilesMSGHandler(Handler):
@@ -89,7 +86,7 @@ class FilesMSGHandler(Handler):
         for file in self.files:
             file.replaceNumbers()
     
-        return self.files
+        #return self.files
     
     
     def printFile(self):
@@ -123,8 +120,8 @@ class FileHandler():
 from input_handler import getImitationInputCustom 
 from input_handler import getImitationInputUsual  
 def test():
-    mode = "Custom"
     mode = "Usual"
+    mode = "Custom"
     fileTag = None
 
     if mode == "Custom":
@@ -157,19 +154,4 @@ if __name__ == "__main__":
 # for file in files:
     # file.replaceNumbers()
         
-        
-        
-# class FileHandler():
-    # @classmethod    
-    # def process(cls, data, fileTag = None):
-        # if fileTag is None:
-            # handler = CustomFileHandler(data)
-        # else:
-            # typeFile = fileTag.getparent().get('type')
-            # if typeFile == ".fos":
-                # handler = FileFosHandler(data, fileTag)
-            # else:
-                # handler = FilesMSGHandler(data, fileTag)
-                
-        # return handler
     
