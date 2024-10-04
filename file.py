@@ -90,7 +90,9 @@ class File:
 
     #business_logic
     def replaceNumbers(self):
-        self.output = f"Номера изменены на {self.delta}:\n"
+        #шапка вывода статистики
+        self.output = f"Номера изменены на {self.delta}:\n" + f"str".center(5) + "old".center(8) + "new".rjust(7)+ "\n"
+        
         lines = self.lines
         #номера списка lines идут от 0
         for i in range(self.start - 1, self.end):
@@ -101,6 +103,7 @@ class File:
                 if number_in_brackets == None: continue
                 number_in_brackets = number_in_brackets.group()
                 
+                self.output += f"{i}:".rjust(5)
                 lines[i] =  self.changeNLine(number_in_brackets, lines[i])
                 
         self.change(lines)
@@ -110,7 +113,7 @@ class File:
         n = re.search(self.pattern_number, oldN).group()
         newN = self.start_bracket + str( int(n) + self.delta ) + self.end_bracket
         line = re.sub(self.pattern_number_in_brackets, newN, line)
-        self.output += f"{oldN} - {newN}\n"
+        self.output += f"{oldN.center(7)} - {newN.center(7)}\n"
         return line
     
     

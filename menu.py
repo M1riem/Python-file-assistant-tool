@@ -3,11 +3,10 @@ class Menu:
     def __init__(self, tag, tagName):
         self.tag = tag
         self.elements = [x for x in tag if x.tag == tagName]
-        self.desc = self.createDescription()
         self.n = len(self.desc)
         #self.selected?
-        # delete
-        self.recursion = 0
+        # debug/delete
+        self.recursion = 0 
         
         
     @property
@@ -29,15 +28,16 @@ class Menu:
     def end(self):
         return ""    
     
-    
-    def createDescription(self):
+    @property
+    def desc(self):
         desc = [f"Изменить '{v}' {self.end}" for v in self.values]
         return desc + self.tails
     
     
     def call(self):
         print(self.__str__())
-        return self.select()
+        self.select()
+        return self
         
     
     def __str__(self):
@@ -57,11 +57,11 @@ from _xml_ import _XML_
 from _xml_ import _xml_updateDirectories
 class MenuCategories(Menu):    
     def __init__(self):
-        super().__init__(_XML_.root, _XML_.root[0].tag)
-        self.handMode = False
+        self.outputStatistics = "Вывод статистики: OFF"
         self.exitProgram = False
         
-    
+        super().__init__(_XML_.root, _XML_.root[0].tag)
+        
     
     @property
     def header(self):
@@ -76,7 +76,7 @@ class MenuCategories(Menu):
     
     @property
     def tails(self):
-        return ["Режим ручного ввода файла", "Изменить каталоги, в которых расположены файлы", "Выход"]
+        return ["Режим ручного ввода файла", "Изменить каталоги, в которых расположены файлы", self.outputStatistics,  "Выход"]
     
     
     @property    
@@ -94,21 +94,31 @@ class MenuCategories(Menu):
                 #файлы '.MSG' или '.fos' из fileXML
                 case i if i in range(1, len(suffixes) + 1 ):
                     #вызов меню MenuFiles и получение fileTag
-                    fileTag = MenuFiles(suffixes[i-1]).call()
-                    return fileTag
+                    menuFiles = MenuFiles(suffixes[i-1]).call() 
+                    self.fileTag = menuFiles.fileTag
                     
                 #Кастомный ввод
-                case i if i == self.n-2: 
-                    self.handMode = True
-                    return None
+                case i if i == self.n-3: 
+                    self.fileTag = None
+
                         
                 #Изменить дирректории в XML файле   
-                case i if i == self.n-1:
+                case i if i == self.n-2:
                     _xml_updateDirectories(suffixes)
                     #recursion
                     self.recursion += 1
                     self.restart("")
                     print("categoryMenu: updateDirectories n = ", self.recursion)
+                
+                #Вывод статистики
+                case i if i == self.n-1:
+                    self.recursion += 1
+                    if self.outputStatistics.find("ON") > 0:
+                        self.outputStatistics = self.outputStatistics.replace("ON", "OFF")
+                    else:
+                        self.outputStatistics = self.outputStatistics.replace("OFF", "ON")
+                    self.restart("")
+                    print("categoryMenu: outputStatistics n = ", self.recursion)
                
                 #Выход
                 case i if i == self.n: 
@@ -131,6 +141,7 @@ class MenuCategories(Menu):
 class MenuFiles(Menu):
     def __init__(self, tag, tagName="filenames"):
         super().__init__(tag, tagName) 
+        self.fileTag = None
     
     @property
     def header(self):
@@ -155,7 +166,9 @@ class MenuFiles(Menu):
             match i:
                 # Был выбран файл из списка
                 case i if i in range(1, self.n):  
-                    return self.elements[i-1]
+                    self.fileTag = self.elements[i-1]
+                    print(self.fileTag.text)
+                    #return self.elements[i-1]
                 
                 # Вернуться к выбору категории
                 case i if i == self.n:
@@ -174,8 +187,6 @@ class MenuFiles(Menu):
             self.restart("Вы ввели не целочисленное значение", error=True)
             self.recursion += 1
             print("menuFile: ValueError n = ", self.recursion)
-            
-        return None   
 
         
 #restartMenu
@@ -198,6 +209,7 @@ def createMenuCategories():
 from file_handler import FileHandler
 class MenuCustomer:
     def __init__(self, fileTag):
+        print(fileTag.text)
         self.fileTag = fileTag
         if fileTag is None:
             self.description =  "[полный_путь_к_файлу] [номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
@@ -246,10 +258,10 @@ class MenuCustomer:
             print(handler)
             self.restart()
         #запуск логики замены номеров
-        result = handler.run()
-        #вывод статистики для пользователя
-        if result is not None:
-            result.printStatisticsNumbersChangesInFile()
+        handler = handler.run()
+        #вывод статистики для пользователя, если это было установлено в MenuCategories
+        if menuCategories.outputStatistics.find("ON") > 0:
+            handler.printStatisticsNumbersChangesInFile()
     
     
     def restart(self, error=True):
@@ -266,11 +278,14 @@ class MenuCustomer:
 #"Тестирование меню")
 
 def test():
-    #получаем тэг выбранного файла из меню
-    fileTag = menuCategories.call()    
+    #вызов меню категорий
+    menuCategories.call()   
     #проверка на выход из программы
     if menuCategories.exitProgram: return 
+    #получаем тэг выбранного файла из меню
+    fileTag = menuCategories.fileTag
     #создание меню пользовательского ввода
+    #print(fileTag)
     menuCustomer = MenuCustomer(fileTag)
     #запуск menuCustomer
     menuCustomer.call()

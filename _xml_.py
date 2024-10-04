@@ -31,8 +31,8 @@ class _XML_:
     def createFile(cls, fileXML):    
         xmlData = r"""<extensions>
   <extension type=".MSG">
-    <directory type="russ">C:\GitHub\Python\Python-file-assistant-tool\russ</directory>
-    <directory type="engl">C:\GitHub\Python\Python-file-assistant-tool\engl</directory>
+    <directory type="russ">C:\GitHub\Python\Python-file-assistant-tool\text\russ</directory>
+    <directory type="engl">C:\GitHub\Python\Python-file-assistant-tool\text\engl</directory>
     <filenames>FOCOMBAT.MSG</filenames>
     <filenames>FOCRAFT.MSG</filenames>
     <filenames>FODLG.MSG</filenames>

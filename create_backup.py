@@ -78,10 +78,8 @@ def _createBackup(path, formatEnd=".bcp"):
     newBackup = setNewBackup(directory, filename, lastBackup, formatEnd)
     
     #оптимизировать для вывода статистики в file.py
-    #result = f"Создан бэкап файла: \n'{newBackup}'"
-    #return result
-    
-    print(f"Создан бэкап файла: \n'{newBackup}'")
+    #отказ от вывода бэкапа в статистику
+    #print(f"Создан бэкап файла: \n'{newBackup}'")
     # print(f"created backup: '{newBackup}'")
 
 
