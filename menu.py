@@ -93,55 +93,53 @@ class MenuCategories(Menu):
             match i:
                 #файлы '.MSG' или '.fos' из fileXML
                 case i if i in range(1, len(suffixes) + 1 ):
-                    #вызов меню MenuFiles и получение fileTag
-                    menuFiles = MenuFiles(suffixes[i-1]).call() 
-                    self.fileTag = menuFiles.fileTag
+                    #вызов меню MenuFiles
+                    MenuFiles(suffixes[i-1]).call()
+                    #self.restart("")                    
                     
                 #Кастомный ввод
                 case i if i == self.n-3: 
-                    self.fileTag = None
+                    #вызов меню пользовательского ввода
+                    MenuCustomer(None).call()
+                    #вернуться в это меню после окончания работы MenuCustomer
+                    self.restart("")
 
                         
                 #Изменить дирректории в XML файле   
                 case i if i == self.n-2:
                     _xml_updateDirectories(suffixes)
-                    #recursion
-                    self.recursion += 1
+                    #self.recursion += 1
                     self.restart("")
-                    print("categoryMenu: updateDirectories n = ", self.recursion)
+                    #print("categoryMenu: updateDirectories n = ", self.recursion)
                 
                 #Вывод статистики
                 case i if i == self.n-1:
-                    self.recursion += 1
+                    #self.recursion += 1
                     if self.outputStatistics.find("ON") > 0:
                         self.outputStatistics = self.outputStatistics.replace("ON", "OFF")
                     else:
                         self.outputStatistics = self.outputStatistics.replace("OFF", "ON")
                     self.restart("")
-                    print("categoryMenu: outputStatistics n = ", self.recursion)
+                    #print("categoryMenu: outputStatistics n = ", self.recursion)
                
                 #Выход
                 case i if i == self.n: 
                     self.exitProgram = True
-                    #sys.exit
                     
                 #Любое другое целочисленное значение
                 case _:
-                    self.recursion += 1
+                    #self.recursion += 1
                     self.restart("Такой категории не существует", error=True)
-                    print("categoryMenu: not exist n = ", self.recursion)
+                    #print("categoryMenu: not exist n = ", self.recursion)
         except ValueError:
-            self.recursion += 1
+            #self.recursion += 1
             self.restart("Вы ввели не целочисленное значение", error=True)
-            print("categoryMenu: ValueError n = ", self.recursion)
-        
-        return None
+            #print("categoryMenu: ValueError n = ", self.recursion)
 
    
 class MenuFiles(Menu):
     def __init__(self, tag, tagName="filenames"):
         super().__init__(tag, tagName) 
-        self.fileTag = None
     
     @property
     def header(self):
@@ -166,34 +164,72 @@ class MenuFiles(Menu):
             match i:
                 # Был выбран файл из списка
                 case i if i in range(1, self.n):  
-                    self.fileTag = self.elements[i-1]
-                    print(self.fileTag.text)
-                    #return self.elements[i-1]
+                    fileTag = self.elements[i-1]
+                    #вызов меню пользовательского ввода
+                    MenuCustomer(fileTag).call()
+                    #перезапуск 
+                    self.restart("")
                 
                 # Вернуться к выбору категории
                 case i if i == self.n:
-                    self.recursion += 1
-                    restart(menuCategories, "")
-                    print("menuFile call menuCategory: n = ", self.recursion)
+                    #self.recursion += 1
+                    menuCategories.restart("")
+                    #print("menuFile call menuCategory: n = ", self.recursion)
 
                 #любые другие номера или строки    
                 case _:
                     #вызов этого же меню
                     self.restart("Такого номера файла не существует", error=True)
-                    self.recursion += 1                    
-                    print("menuFile: not exist n = ", self.recursion)
+                    #self.recursion += 1                    
+                    #print("menuFile: not exist n = ", self.recursion)
         except ValueError:
             #вызов этого же меню
             self.restart("Вы ввели не целочисленное значение", error=True)
-            self.recursion += 1
-            print("menuFile: ValueError n = ", self.recursion)
+            #self.recursion += 1
+            #print("menuFile: ValueError n = ", self.recursion)
 
+
+from file_handler import FileHandler
+class MenuCustomer:
+    def __init__(self, fileTag):
+        self.fileTag = fileTag
+        if fileTag is None:
+            self.description =  "[полный_путь_к_файлу] [номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
+        else:    
+            self.description = "[номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
         
-#restartMenu
-def restart(menu, node, error=False):
-    if node: print(f"{node}! Попробуйте еще раз!")
-    if error: print_()
-    menu.call()
+        #при создании меню выводится вводная информация
+        print("\n\nВы зашли в меня замены строк в файле. Для возращения в прошлое меню введите пустую строку.")
+        
+    
+    def call(self):
+        #ввод данных пользователем: ([path])[start][end][delta]
+        data = input(self.__str__())
+        #проверка на возврат в прошлое меню
+        if data == "": return
+        #создание файлового обработчика
+        handler = FileHandler(data, self.fileTag)
+        #проверка на перезапуск
+        #if handler is None:
+            # print(handler)
+            # self.restart(error=True)
+        #запуск логики замены номеров
+        handler = handler.run()
+        #печатать статистику измененных номеров для пользователя
+        if menuCategories.outputStatistics.find("ON") > 0:
+            handler.printStatisticsNumbersChangesInFile()
+            
+        self.restart()
+          
+    
+    def restart(self, error=False):
+        #if node: print(f"! Попробуйте еще раз!")
+        if error: print_()
+        self.call()
+
+
+    def __str__(self):
+        return "\nВведите строку в формате " + self.description
 
 
 #Список категорий генерируется один раз
@@ -203,76 +239,7 @@ def createMenuCategories():
     if not menuCategories:
         menuCategories = MenuCategories()
     else:
-        print("Категории уже существуют!")        
-
-
-from file_handler import FileHandler
-class MenuCustomer:
-    def __init__(self, fileTag):
-        print(fileTag.text)
-        self.fileTag = fileTag
-        if fileTag is None:
-            self.description =  "[полный_путь_к_файлу] [номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
-        else:    
-            self.description = "[номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
-        
-    '''    
-    def select(self):
-        index = input(f"Введите число от 1 до {self.n}: ")
-        
-        try:
-            i = int(index)
-            match i:
-                # Был выбран файл из списка
-                case i if i in range(1, self.n):  
-                    return self.elements[i-1]
-                
-                # Вернуться к выбору категории
-                case i if i == self.n:
-                    self.recursion += 1
-                    restart(menuCategories, "")
-                    print("menuFile call menuCategory: n = ", self.recursion)
-
-                #любые другие номера или строки    
-                case _:
-                    #вызов этого же меню
-                    self.restart("Такого номера файла не существует", error=True)
-                    self.recursion += 1                    
-                    print("menuFile: not exist n = ", self.recursion)
-        except ValueError:
-            #вызов этого же меню
-            self.restart("Вы ввели не целочисленное значение", error=True)
-            self.recursion += 1
-            print("menuFile: ValueError n = ", self.recursion)
-            
-        return None
-    '''
-    
-    def call(self):
-        #ввод данных пользователем: ([path])[start][end][delta]
-        data = input(self.__str__())
-        #создание файлового обработчика
-        handler = FileHandler(data, self.fileTag)
-        #проверка на перезапуск
-        if handler is None:
-            print(handler)
-            self.restart()
-        #запуск логики замены номеров
-        handler = handler.run()
-        #вывод статистики для пользователя, если это было установлено в MenuCategories
-        if menuCategories.outputStatistics.find("ON") > 0:
-            handler.printStatisticsNumbersChangesInFile()
-    
-    
-    def restart(self, error=True):
-        if node: print(f"! Попробуйте еще раз!")
-        if error: print_()
-        self.call()
-
-
-    def __str__(self):
-        return "\nВведите строку в формате " + self.description
-    
+        print("Категории уже существуют!")      
 
 #C:\GitHub\Python\Python-file-assistant-tool\russ\EXAMPLE.MSG 1 16 2
 #"Тестирование меню")
@@ -282,13 +249,6 @@ def test():
     menuCategories.call()   
     #проверка на выход из программы
     if menuCategories.exitProgram: return 
-    #получаем тэг выбранного файла из меню
-    fileTag = menuCategories.fileTag
-    #создание меню пользовательского ввода
-    #print(fileTag)
-    menuCustomer = MenuCustomer(fileTag)
-    #запуск menuCustomer
-    menuCustomer.call()
     
 
 def init():
