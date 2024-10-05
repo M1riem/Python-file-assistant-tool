@@ -47,8 +47,8 @@ class Menu:
         return out
     
     
-    def restart(self, node, error=False):
-        if node: print(f"{node}! Попробуйте еще раз!")
+    def restart(self, text, error=False):
+        if text: print(f"{text}! Попробуйте еще раз!")
         if error: print_()
         self.call()
         
