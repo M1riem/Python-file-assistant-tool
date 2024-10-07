@@ -4,9 +4,7 @@ class Menu:
         self.tag = tag
         self.elements = [x for x in tag if x.tag == tagName]
         self.n = len(self.desc)
-        #self.selected?
-        # debug/delete
-        self.recursion = 0 
+        self.exitMenu = False
         
         
     @property
@@ -28,17 +26,29 @@ class Menu:
     def end(self):
         return ""    
     
+    
     @property
     def desc(self):
         desc = [f"Изменить '{v}' {self.end}" for v in self.values]
         return desc + self.tails
     
     
+    @property
+    def customerInput(self):
+        return input(f"Введите число от 1 до {self.n}: ").strip()
+    
+    
     def call(self):
+        #Вывести меню пользователю
         print(self.__str__())
-        self.select()
-        return self
-        
+        #пользователь ввел номер меню
+        _input_ = self.customerInput
+        #выбор из меню из программы
+        self.selectLogic(_input_)
+        #если не выход из меню
+        if not self.exitMenu:
+            self.restart()
+            
     
     def __str__(self):
         n = self.n
@@ -47,10 +57,13 @@ class Menu:
         return out
     
     
-    def restart(self, text, error=False):
-        if text: print(f"{text}! Попробуйте еще раз!")
-        if error: print_()
+    def restart(self, text="", error=False):
         self.call()
+    
+    
+    def writeError(self, error):
+        print(f"{error}! Попробуйте еще раз!")
+        print_()
         
         
 from _xml_ import _XML_
@@ -58,8 +71,6 @@ from _xml_ import _xml_updateDirectories
 class MenuCategories(Menu):    
     def __init__(self):
         self.outputStatistics = "Вывод статистики: OFF"
-        self.exitProgram = False
-        
         super().__init__(_XML_.root, _XML_.root[0].tag)
         
     
@@ -76,160 +87,138 @@ class MenuCategories(Menu):
     
     @property
     def tails(self):
-        return ["Режим ручного ввода файла", "Изменить каталоги, в которых расположены файлы", self.outputStatistics,  "Выход"]
+        return ["Режим ручного ввода файла", "Изменить каталоги, в которых расположены файлы", self.outputStatistics,  "Выход из программы"]
     
     
     @property    
     def end(self):
-        return "файлы" 
-        
-    
-    def select(self):
-        i = input(f"Введите число от 1 до {self.n}: ").strip()
+        return "файлы"     
+           
+            
+    def selectLogic(self, i):
         suffixes = self.elements
-                    
         try:
             i = int(i)
             match i:
-                #файлы '.MSG' или '.fos' из fileXML
+                # вызов меню выбора файлов
                 case i if i in range(1, len(suffixes) + 1 ):
-                    #вызов меню MenuFiles
                     MenuFiles(suffixes[i-1]).call()
-                    #self.restart("")                    
                     
-                #Кастомный ввод
+                # вызов меню пользовательского ввода
                 case i if i == self.n-3: 
-                    #вызов меню пользовательского ввода
                     MenuCustomer(None).call()
-                    #вернуться в это меню после окончания работы MenuCustomer
-                    self.restart("")
 
-                        
-                #Изменить дирректории в XML файле   
+                # изменить дирректории в XML файле   
                 case i if i == self.n-2:
                     _xml_updateDirectories(suffixes)
-                    #self.recursion += 1
-                    self.restart("")
-                    #print("categoryMenu: updateDirectories n = ", self.recursion)
                 
-                #Вывод статистики
+                # выбор вывода статистики пользователем
                 case i if i == self.n-1:
-                    #self.recursion += 1
-                    if self.outputStatistics.find("ON") > 0:
-                        self.outputStatistics = self.outputStatistics.replace("ON", "OFF")
-                    else:
-                        self.outputStatistics = self.outputStatistics.replace("OFF", "ON")
-                    self.restart("")
-                    #print("categoryMenu: outputStatistics n = ", self.recursion)
-               
-                #Выход
-                case i if i == self.n: 
-                    self.exitProgram = True
-                    
-                #Любое другое целочисленное значение
-                case _:
-                    #self.recursion += 1
-                    self.restart("Такой категории не существует", error=True)
-                    #print("categoryMenu: not exist n = ", self.recursion)
-        except ValueError:
-            #self.recursion += 1
-            self.restart("Вы ввели не целочисленное значение", error=True)
-            #print("categoryMenu: ValueError n = ", self.recursion)
+                    self.selectStatistic()
 
-   
+                # выход из меню 
+                case i if i == self.n: 
+                    self.exitMenu = True
+                    
+                case _:
+                    self.writeError("Такой категории не существует")
+        except ValueError:
+            self.writeError("Вы ввели не целочисленное значение")
+    
+    
+    def selectStatistic(self):
+        if self.outputStatistics.find("ON") > 0:
+            self.outputStatistics = self.outputStatistics.replace("ON", "OFF")
+        else:
+            self.outputStatistics = self.outputStatistics.replace("OFF", "ON")
+    
+    
+import sys    
 class MenuFiles(Menu):
     def __init__(self, tag, tagName="filenames"):
         super().__init__(tag, tagName) 
+        self.n = len(self.values)
+        
     
     @property
     def header(self):
-        return "\nВыберите файл, который будет изменен: \n"  
+        return "\n\nВы зашли в меню выбора файла. Для возвращения в меню выбора категории нажмите Enter\n" + "Выберите номер файла, который будет изменен: \n"
     
     
     @property
     def values(self):
         return [e.text for e in self.elements]
-        
     
-    @property    
-    def tails(self):
-        return ["Вернуться к выбору категории"]
-    
-    
-    def select(self):
-        index = input(f"Введите число от 1 до {self.n}: ")
-        
-        try:
-            i = int(index)
-            match i:
-                # Был выбран файл из списка
-                case i if i in range(1, self.n):  
-                    fileTag = self.elements[i-1]
-                    #вызов меню пользовательского ввода
-                    MenuCustomer(fileTag).call()
-                    #перезапуск 
-                    self.restart("")
-                
-                # Вернуться к выбору категории
-                case i if i == self.n:
-                    #self.recursion += 1
-                    menuCategories.restart("")
-                    #print("menuFile call menuCategory: n = ", self.recursion)
 
-                #любые другие номера или строки    
-                case _:
-                    #вызов этого же меню
-                    self.restart("Такого номера файла не существует", error=True)
-                    #self.recursion += 1                    
-                    #print("menuFile: not exist n = ", self.recursion)
+    def selectLogic(self, i):
+        try:
+            match i:
+                # Вернуться к выбору категории
+                case "":  self.exitMenu = True              
+                
+                #Вызов меню пользовательского ввода
+                case i if int(i) in range(1, self.n+1):  
+                    fileTag = self.elements[int(i)-1]
+                    MenuCustomer(fileTag).call()
+
+                #любые другие номера или строки вызывают ошибку    
+                case _:   self.writeError("Такого номера файла не существует")
         except ValueError:
-            #вызов этого же меню
-            self.restart("Вы ввели не целочисленное значение", error=True)
-            #self.recursion += 1
-            #print("menuFile: ValueError n = ", self.recursion)
+            self.writeError("Вы ввели не целочисленное значение")
+    
+    
+    def __str__(self):
+        n = len(self.values)
+        out = self.header
+        out += '\n'.join([f"{i+1}. {self.values[i]}" for i in range(n)])
+        return out
 
 
 from file_handler import FileHandler
-class MenuCustomer:
-    def __init__(self, fileTag):
-        self.fileTag = fileTag
-        if fileTag is None:
-            self.description =  "[полный_путь_к_файлу] [номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
-        else:    
-            self.description = "[номер_начальной_строки] [номер_конечной_строки] [дельта]:\n"
-        
-        #при создании меню выводится вводная информация
-        print("\n\nВы зашли в меня замены строк в файле. Для возращения в прошлое меню введите пустую строку.")
+class MenuCustomer(Menu):
+    def __init__(self, tag):
+        super().__init__(tag, "")
         
     
-    def call(self):
-        #ввод данных пользователем: ([path])[start][end][delta]
-        data = input(self.__str__())
-        #проверка на возврат в прошлое меню
-        if data == "": return
+    @property
+    def header(self):
+        return "\n\nВы зашли в меню замены строк в файле. Для возращения в прошлое меню нажмите Enter."  
+    
+    
+    @property
+    def desc(self):
+        if self.tag is None:
+            return "[полный_путь_к_файлу] [номер_начальной_строки] [номер_конечной_строки] [дельта]:"
+        else:  
+            return "[номер_начальной_строки] [номер_конечной_строки] [дельта]:"
+        
+        
+    @property
+    def customerInput(self):
+        return input(f"\nВведите строку в формате {self.desc}\n").strip()
+    
+   
+    def selectLogic(self, data):
+        match data:
+            # Вернуться к выбору файла
+            case "":  self.exitMenu = True              
+            
+            #любые другие номера или строки     
+            case _:   self.runBusinessLogic(data)
+    
+    
+    def runBusinessLogic(self, data):    
         #создание файлового обработчика
-        handler = FileHandler(data, self.fileTag)
-        #проверка на перезапуск
-        #if handler is None:
-            # print(handler)
-            # self.restart(error=True)
+        handler = FileHandler(data, self.tag)
         #запуск логики замены номеров
         handler = handler.run()
         #печатать статистику измененных номеров для пользователя
         if menuCategories.outputStatistics.find("ON") > 0:
             handler.printStatisticsNumbersChangesInFile()
-            
-        self.restart()
-          
-    
-    def restart(self, error=False):
-        #if node: print(f"! Попробуйте еще раз!")
-        if error: print_()
-        self.call()
 
 
     def __str__(self):
-        return "\nВведите строку в формате " + self.description
+        return self.header
 
 
 #Список категорий генерируется один раз
@@ -245,19 +234,14 @@ def createMenuCategories():
 #"Тестирование меню")
 
 def test():
+    _XML_.connectFile("data.xml")
+    #cоздать меню выбора категории
+    createMenuCategories()
     #вызов меню категорий
     menuCategories.call()   
-    #проверка на выход из программы
-    if menuCategories.exitProgram: return 
     
 
-def init():
-    _XML_.connectFile("data.xml")
-    createMenuCategories()
-
-
 def main():
-    init()
     test()
 
 if __name__ == "__main__": 
